@@ -12,6 +12,8 @@ FLAP_KEY = Phaser.Keyboard.UP
 DIFFICULTY_SETTINGS = 100
 
 handleCollision = ->
+  @game._safeZoneCounter = 0
+  @game._safeZoneIDs = []
   @game._player.kill()
   @game._score = 0
   @game.time.events.remove(@game._timer)
@@ -45,6 +47,8 @@ preflight.create = ->
   readyKey = @game.input.keyboard.addKey FLAP_KEY
   readyKey.onDown.add toggleFlap, @
  
+  @game._safeZoneCounter = 0
+  @game._safeZoneIDs = []
   @game._score = 0
   @game._scoreText = @game.add.text(16, 16, "#{@game._score}", font: '32px arial', fill: '#000')
   @game._player = player
@@ -64,9 +68,10 @@ ingame.create = ->
   @game._player.body.gravity.y = GRAVITY
   @game._player.body.collideWorldBounds = true
   @game._timer = @game.time.events.loop(3000, ingame.createPipe, @)
-  #group of all pipe columns
-  pipeColumnGroup = @game.add.group()  
-  @game._pipeColumnGroup = pipeColumnGroup
+  
+  @game._pipeGroup = @game.add.group()
+  @game._safeZones = @game.add.group()
+  
   
   flapKey = @game.input.keyboard.addKey FLAP_KEY
   flapKey.onDown.add toggleFlap, @
@@ -84,7 +89,6 @@ ingame.update = ->
   @game.physics.overlap(player, ground, handleCollision, null, @)
   
   @game.physics.overlap(player,pipes,handleCollision, null, @) 
-  @game.physics.collide(player,pipes,handleCollision, null, @) 
   
   @game.physics.overlap(player,safeZone,addPoint, null, @)
   
@@ -101,29 +105,38 @@ ingame.createPipe = ->
   player = @game._player
   #determine the safe zone of each pipe column
   safeZoneLocation = Math.floor(Math.random() * (400 - 150 + 1)) + 150
+  pipeGroup = @game._pipeGroup
+  safeZones = @game._safeZones
   
-  #each individual pipe
-  pipeGroup = @game.add.group()
-  safeZoneGroup = @game.add.group()
   
   #top and bottom of pipe Group
-  pipeTop = pipeGroup.create(700, (safeZoneLocation - 100 - 500 ), "pipe_top")
-  pipeTop.width = 100
-  pipeBottom = pipeGroup.create(700, safeZoneLocation + 100, "pipe_bottom")  
-  pipeBottom.width = 100
-  safeZone = safeZoneGroup.create(700, safeZoneLocation, "safe_zone")
-      
+  pipeTop = @game.add.sprite(700, (safeZoneLocation - 100 - 525 ), "pipe_top")
+  pipeBottom = @game.add.sprite(700, safeZoneLocation + 125, "pipe_bottom")  
+ 
+  safeZone = @game.add.sprite(700, safeZoneLocation, "safe_zone")
+  
+  newId = @game._safeZoneCounter + 1
+  @game._safeZoneCounter = newId
+  @game._safeZoneIDs.push(newId)
+  
   safeZone.body.velocity.x = -200
   pipeTop.body.velocity.x = -200
   pipeBottom.body.velocity.x = -200
   
+  pipeGroup.add(pipeTop)
+  pipeGroup.add(pipeBottom)
+  safeZones.add(safeZone)
+ 
   @game._pipes = pipeGroup
-  @game._safeZones = safeZoneGroup
+  @game._safeZones = safeZones
 
-addPoint = ->  
-  @game._score += 1
-  console.log @game._score
-  @game._scoreText.content = "#@game._score"  
+addPoint = (zone)->
+  safeZoneCounter = @game._safeZoneCounter
+  ids = @game._safeZoneIDs
+  
+  if !ids.contains(1)
+    @game._score += 1
+    @game._scoreText.content = "#@game._score"  
   
 inmenu = new Phaser.State
 
