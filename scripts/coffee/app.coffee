@@ -1,5 +1,5 @@
-FLAP_VELOCITY = -300
-GRAVITY = 25
+FLAP_VELOCITY = -280
+GRAVITY = 1000
 WIDTH = 800
 HEIGHT = 600
 START_POSITION = 100
@@ -11,8 +11,15 @@ FLAP_KEY = Phaser.Keyboard.UP
 #height of the hole you can fly through
 DIFFICULTY_SETTINGS = 100
 
-handleCollision = -> @game.state.start "inmenu"
-
+handleCollision = ->
+  @game._player.kill()
+  @game._score = 0
+  @game.time.events.remove(@game._timer)
+  @game._pipes.removeAll()
+  @game._safeZones.removeAll()
+  @game.state.start "inmenu", true
+  
+  
 toggleFlap = -> @_shouldFlap = true
 
 toggleReady = -> @_ready = true
@@ -56,7 +63,7 @@ ingame = new Phaser.State
 ingame.create = ->
   @game._player.body.gravity.y = GRAVITY
   @game._player.body.collideWorldBounds = true
-  @game.time.events.loop(3000, ingame.createPipe, @)
+  @game._timer = @game.time.events.loop(3000, ingame.createPipe, @)
   #group of all pipe columns
   pipeColumnGroup = @game.add.group()  
   @game._pipeColumnGroup = pipeColumnGroup
@@ -70,9 +77,17 @@ ingame.create = ->
 ingame.update = ->
   player = @game._player
   ground = @game._ground
+  pipes = @game._pipes
+  safeZone = @game._safeZones
+  
   @game.physics.collide(player, ground, handleCollision, null, @)
   @game.physics.overlap(player, ground, handleCollision, null, @)
-
+  
+  @game.physics.overlap(player,pipes,handleCollision, null, @) 
+  @game.physics.collide(player,pipes,handleCollision, null, @) 
+  
+  @game.physics.overlap(player,safeZone,addPoint, null, @)
+  
   player.body.rotation = if player.body.velocity.y < 0 then -40 else 60
   if @_shouldFlap
     player.body.velocity.y = FLAP_VELOCITY
@@ -83,24 +98,32 @@ ingame.update = ->
 
   
 ingame.createPipe = ->  
+  player = @game._player
   #determine the safe zone of each pipe column
   safeZoneLocation = Math.floor(Math.random() * (400 - 150 + 1)) + 150
   
-  #each individual pipe column 
+  #each individual pipe
   pipeGroup = @game.add.group()
-
+  safeZoneGroup = @game.add.group()
+  
   #top and bottom of pipe Group
   pipeTop = pipeGroup.create(700, (safeZoneLocation - 100 - 500 ), "pipe_top")
+  pipeTop.width = 100
   pipeBottom = pipeGroup.create(700, safeZoneLocation + 100, "pipe_bottom")  
-  safeZone = pipeGroup.create(700, safeZoneLocation, "safe_zone")
-  
+  pipeBottom.width = 100
+  safeZone = safeZoneGroup.create(700, safeZoneLocation, "safe_zone")
+      
   safeZone.body.velocity.x = -200
   pipeTop.body.velocity.x = -200
   pipeBottom.body.velocity.x = -200
   
-  @game._pipeColumnGroup.add(pipeGroup)
-  
-  
+  @game._pipes = pipeGroup
+  @game._safeZones = safeZoneGroup
+
+addPoint = ->  
+  @game._score += 1
+  console.log @game._score
+  @game._scoreText.content = "#@game._score"  
   
 inmenu = new Phaser.State
 
@@ -109,9 +132,9 @@ inmenu.preload = ->
   @game.load.image('sky', '/assets/images/sky.png')
   @game.load.image('ground', '/assets/images/grass_32x32.png')
   @game.load.spritesheet('dude', '/assets/images/dude.png', 32, 48)
-  @game.load.image('pipe_top', '/assets/images/pipe_top.png')
-  @game.load.image('pipe_bottom', '/assets/images/pipe_bottom.png')
-  @game.load.image('safe_zone', '/assets/images/safe_zone.png')
+  @game.load.image('pipe_top', '/assets/images/pipe_top.png', 100, 600)
+  @game.load.image('pipe_bottom', '/assets/images/pipe_bottom.png', 100, 600)
+  @game.load.image('safe_zone', '/assets/images/safe_zone.png', 100, 100)
 inmenu.create = ->
   @game.add.sprite(0, 0, 'sky')
 
