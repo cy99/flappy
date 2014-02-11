@@ -39,10 +39,10 @@ game = new Phaser.Game WIDTH, HEIGHT
 preflight = new Phaser.State
 
 preflight.create = ->
-  player = @game.add.sprite(100, @game.world.height - 400, "dude")
+  player = @game.add.sprite(100, @game.world.height - 400, "naked_dude")
   player.body.collideWorldBounds = true
-  player.animations.add "flying", [5,6,7,8], 4, true
-  player.animations.play "flying"
+  player.animations.add("flying", [1,0], 8)
+  player.frame = 0
   player.anchor = new Phaser.Point .5, .5
 
   ground = game.add.tileSprite(0, HEIGHT - 32, WIDTH, 32, "ground")
@@ -118,6 +118,7 @@ ingame.update = ->
   
   if @_shouldFlap
     @_flapSound.play()
+    player.animations.play "flying"
     player.body.velocity.y = FLAP_VELOCITY
     @_shouldFlap = false
   
@@ -156,11 +157,11 @@ addPoint = (player, zone)->
   
 inmenu = new Phaser.State
 
-inmenu.preload = ->
+inmenu.preload = -> 
   @game.input.keyboard.addKeyCapture [SPACE_KEY_CODE, UP_KEY_CODE]
   @game.load.image('sky', '/assets/images/sky.png')
   @game.load.image('ground', '/assets/images/grass_32x32.png')
-  @game.load.spritesheet('dude', '/assets/images/dude.png', 32, 48)
+  @game.load.spritesheet('naked_dude', '/assets/images/naked_dude.png', 48, 48)
   @game.load.audio('flap', '/resources/sounds/Flap.ogg')
   @game.load.audio("death", '/resources/sounds/Death.ogg')
   @game.load.audio("point", "/resources/sounds/Point.ogg")
