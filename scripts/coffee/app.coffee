@@ -8,6 +8,9 @@ UP_KEY_CODE = 38
 READY_KEY = Phaser.Keyboard.SPACEBAR
 FLAP_KEY = Phaser.Keyboard.UP
 
+#height of the hole you can fly through
+DIFFICULTY_SETTINGS = 100
+
 handleCollision = -> @game.state.start "inmenu"
 
 toggleFlap = -> @_shouldFlap = true
@@ -53,7 +56,11 @@ ingame = new Phaser.State
 ingame.create = ->
   @game._player.body.gravity.y = GRAVITY
   @game._player.body.collideWorldBounds = true
-
+  @game.time.events.loop(3000, ingame.createPipe, @)
+  #group of all pipe columns
+  pipeColumnGroup = @game.add.group()  
+  @game._pipeColumnGroup = pipeColumnGroup
+  
   flapKey = @game.input.keyboard.addKey FLAP_KEY
   flapKey.onDown.add toggleFlap, @
 
@@ -70,9 +77,31 @@ ingame.update = ->
   if @_shouldFlap
     player.body.velocity.y = FLAP_VELOCITY
     @_shouldFlap = false
-
+  
+    
   @game._scoreText.content = "#{@game._score}"
 
+  
+ingame.createPipe = ->  
+  #determine the safe zone of each pipe column
+  safeZoneLocation = Math.floor(Math.random() * (400 - 150 + 1)) + 150
+  
+  #each individual pipe column 
+  pipeGroup = @game.add.group()
+
+  #top and bottom of pipe Group
+  pipeTop = pipeGroup.create(700, (safeZoneLocation - 100 - 500 ), "pipe_top")
+  pipeBottom = pipeGroup.create(700, safeZoneLocation + 100, "pipe_bottom")  
+  safeZone = pipeGroup.create(700, safeZoneLocation, "safe_zone")
+  
+  safeZone.body.velocity.x = -200
+  pipeTop.body.velocity.x = -200
+  pipeBottom.body.velocity.x = -200
+  
+  @game._pipeColumnGroup.add(pipeGroup)
+  
+  
+  
 inmenu = new Phaser.State
 
 inmenu.preload = ->
@@ -80,7 +109,9 @@ inmenu.preload = ->
   @game.load.image('sky', '/assets/images/sky.png')
   @game.load.image('ground', '/assets/images/grass_32x32.png')
   @game.load.spritesheet('dude', '/assets/images/dude.png', 32, 48)
-
+  @game.load.image('pipe_top', '/assets/images/pipe_top.png')
+  @game.load.image('pipe_bottom', '/assets/images/pipe_bottom.png')
+  @game.load.image('safe_zone', '/assets/images/safe_zone.png')
 inmenu.create = ->
   @game.add.sprite(0, 0, 'sky')
 
