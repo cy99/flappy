@@ -17,10 +17,6 @@ INSTRUCTION_TEXT = "PUSH 'UP ARROW' TO FLAP"
 
 handleCollision = ->
   @_deathSound.play()
-  @game.state.start "inmenu"
-
-handleCollision = ->
-  @_deathSound.play()
   @game._safeZoneCounter = 0
   @game._safeZoneIDs = []
   @game._player.kill()
@@ -89,6 +85,7 @@ ingame.create = ->
 
   @_flapSound = game.add.audio "flap"
   @_deathSound = game.add.audio "death"
+  @_pointSound = game.add.audio "point"
   @_flapKey = flapKey
   @_shouldFlap = false
 
@@ -101,10 +98,11 @@ ingame.update = ->
 
   updateGround ground, SCROLL_RATE
 
-  player.body.rotation = if player.body.velocity.y > 0
-    player.body.rotation + 5
+  if player.body.velocity.y > 0
+    if player.body.rotation < 80
+      player.body.rotation += 5
   else
-    0
+    player.body.rotation = 0
 
   player = @game._player
   ground = @game._ground
@@ -114,11 +112,10 @@ ingame.update = ->
   @game.physics.collide(player, ground, handleCollision, null, @)
   @game.physics.overlap(player, ground, handleCollision, null, @)
   
-  @game.physics.overlap(player,pipes,handleCollision, null, @) 
+  @game.physics.overlap(player,pipes,handleCollision, null, @)
   
   @game.physics.overlap(player,safeZone,addPoint, null, @)
   
-  player.body.rotation = if player.body.velocity.y < 0 then -40 else 60
   if @_shouldFlap
     @_flapSound.play()
     player.body.velocity.y = FLAP_VELOCITY
@@ -153,6 +150,7 @@ ingame.createPipe = ->
   safeZones.add(safeZone)
  
 addPoint = (player, zone)->
+  @_pointSound.play()
   @game._score += 1
   zone.destroy()
   
@@ -165,7 +163,6 @@ inmenu.preload = ->
   @game.load.spritesheet('dude', '/assets/images/dude.png', 32, 48)
   @game.load.audio('flap', '/resources/sounds/Flap.ogg')
   @game.load.audio("death", '/resources/sounds/Death.ogg')
-  #@game.load.audio("menu_select", "/resources/sounds/Menu_Select.ogg")
   @game.load.audio("point", "/resources/sounds/Point.ogg")
 
   @game.load.image('pipe_top', '/assets/images/pipe_top.png', 100, 600)
@@ -174,8 +171,6 @@ inmenu.preload = ->
 
 inmenu.create = ->
   @game.add.sprite(0, 0, 'sky')
-  @game.add.audio("flap")
-  @game.add.audio("death")
 
   readyKey = @game.input.keyboard.addKey READY_KEY
   readyKey.onDown.add toggleReady, @
