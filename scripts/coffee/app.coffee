@@ -18,6 +18,17 @@ handleCollision = ->
   @_deathSound.play()
   @game.state.start "inmenu"
 
+handleCollision = ->
+  @game._safeZoneCounter = 0
+  @game._safeZoneIDs = []
+  @game._player.kill()
+  @game._score = 0
+  @game.time.events.remove(@game._timer)
+  @game._pipes.removeAll()
+  @game._safeZones.removeAll()
+  @game.state.start "inmenu", true
+  
+  
 toggleFlap = -> @_shouldFlap = true
 
 toggleReady = -> @_ready = true
@@ -41,6 +52,8 @@ preflight.create = ->
   readyKey = @game.input.keyboard.addKey FLAP_KEY
   readyKey.onDown.add toggleFlap, @
  
+  @game._safeZoneCounter = 0
+  @game._safeZoneIDs = []
   @game._score = 0
   @_readyText = @game.add.text(100, 100, PREFLIGHT_TEXT, font: '32px arial', fill: '#000')
   @_instructionText = @game.add.text(120, 200, INSTRUCTION_TEXT, font: '24px arial', fill: '#000')
@@ -63,6 +76,12 @@ ingame = new Phaser.State
 ingame.create = ->
   @game._player.body.gravity.y = GRAVITY
   @game._player.body.collideWorldBounds = true
+  @game._timer = @game.time.events.loop(3000, ingame.createPipe, @)
+  
+  @game._pipeGroup = @game.add.group()
+  @game._safeZones = @game.add.group()
+  
+  
   flapKey = @game.input.keyboard.addKey FLAP_KEY
   flapKey.onDown.add toggleFlap, @
 
@@ -85,13 +104,65 @@ ingame.update = ->
   else
     0
 
+  player = @game._player
+  ground = @game._ground
+  pipes = @game._pipes
+  safeZone = @game._safeZones
+  
+  @game.physics.collide(player, ground, handleCollision, null, @)
+  @game.physics.overlap(player, ground, handleCollision, null, @)
+  
+  @game.physics.overlap(player,pipes,handleCollision, null, @) 
+  
+  @game.physics.overlap(player,safeZone,addPoint, null, @)
+  
+  player.body.rotation = if player.body.velocity.y < 0 then -40 else 60
   if @_shouldFlap
     @_flapSound.play()
     player.body.velocity.y = FLAP_VELOCITY
     @_shouldFlap = false
+  
+    
+  @game._scoreText.content = "#{@game._score}"
 
-  game._scoreText.content = "#{game._score}"
+  
+ingame.createPipe = ->  
+  player = @game._player
+  #determine the safe zone of each pipe column
+  safeZoneLocation = Math.floor(Math.random() * (400 - 150 + 1)) + 150
+  pipeGroup = @game._pipeGroup
+  safeZones = @game._safeZones
+  
+  
+  #top and bottom of pipe Group
+  pipeTop = @game.add.sprite(700, (safeZoneLocation - 100 - 525 ), "pipe_top")
+  pipeBottom = @game.add.sprite(700, safeZoneLocation + 125, "pipe_bottom")  
+ 
+  safeZone = @game.add.sprite(700, safeZoneLocation, "safe_zone")
+  
+  newId = @game._safeZoneCounter + 1
+  @game._safeZoneCounter = newId
+  @game._safeZoneIDs.push(newId)
+  
+  safeZone.body.velocity.x = -200
+  pipeTop.body.velocity.x = -200
+  pipeBottom.body.velocity.x = -200
+  
+  pipeGroup.add(pipeTop)
+  pipeGroup.add(pipeBottom)
+  safeZones.add(safeZone)
+ 
+  @game._pipes = pipeGroup
+  @game._safeZones = safeZones
 
+addPoint = (zone)->
+  safeZoneCounter = @game._safeZoneCounter
+  ids = @game._safeZoneIDs
+  
+  if !ids.contains(1)
+    @game._score += 1
+    @game._scoreText.content = "#@game._score"  
+  
 inmenu = new Phaser.State
 
 inmenu.preload = ->
@@ -104,6 +175,9 @@ inmenu.preload = ->
   @game.load.audio("menu_select", "/resources/sounds/Menu_Select.ogg")
   @game.load.audio("point", "/resources/sounds/Point.ogg")
 
+  @game.load.image('pipe_top', '/assets/images/pipe_top.png', 100, 600)
+  @game.load.image('pipe_bottom', '/assets/images/pipe_bottom.png', 100, 600)
+  @game.load.image('safe_zone', '/assets/images/safe_zone.png', 100, 100)
 inmenu.create = ->
   @game.add.sprite(0, 0, 'sky')
   @game.add.audio("flap")
