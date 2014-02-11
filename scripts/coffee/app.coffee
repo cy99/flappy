@@ -63,7 +63,6 @@ ingame.create = ->
 ingame.update = ->
   player = @game._player
   ground = @game._ground
-  console.log ground
   @game.physics.collide(player, ground, handleCollision, null, @)
   @game.physics.overlap(player, ground, handleCollision, null, @)
 
@@ -72,7 +71,6 @@ ingame.update = ->
     player.body.velocity.y = FLAP_VELOCITY
     @_shouldFlap = false
 
-  @game._score = Math.floor(Math.random() * 10)
   @game._scoreText.content = "#{@game._score}"
 
 inmenu = new Phaser.State
