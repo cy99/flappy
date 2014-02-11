@@ -63,6 +63,7 @@ ingame.create = ->
 ingame.update = ->
   player = @game._player
   ground = @game._ground
+  console.log ground
   @game.physics.collide(player, ground, handleCollision, null, @)
   @game.physics.overlap(player, ground, handleCollision, null, @)
 

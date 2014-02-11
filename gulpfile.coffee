@@ -2,6 +2,7 @@ gulp = require 'gulp'
 gutil = require 'gulp-util'
 
 coffee = require 'gulp-coffee'
+plumber = require 'gulp-plumber'
 browserify = require 'gulp-browserify'
 concat = require 'gulp-concat'
 uglify = require 'gulp-uglify'
@@ -34,11 +35,13 @@ gulp.task 'livereload', ->
 
 gulp.task 'scripts', ->
   gulp.src('scripts/vendor/*.js')
+    .pipe(plumber())
     .pipe(concat 'vendor.js')
     .pipe(gulp.dest 'assets/')
     .pipe(refresh server)
 
   gulp.src('scripts/coffee/app.coffee', { read: false })
+    .pipe(plumber())
     .pipe(browserify(transform: ['coffeeify'], extensions: ['.coffee']))
     .pipe(concat 'scripts.js')
     .pipe(gulp.dest 'assets/')
@@ -46,10 +49,11 @@ gulp.task 'scripts', ->
 
 gulp.task 'styles', ->
     gulp.src('styles/scss/init.scss')
-        .pipe(sass includePaths: ['styles/scss/includes'])
-        .pipe(concat 'styles.css')
-        .pipe(gulp.dest 'assets/')
-        .pipe(refresh server)
+      .pipe(plumber())
+      .pipe(sass includePaths: ['styles/scss/includes'])
+      .pipe(concat 'styles.css')
+      .pipe(gulp.dest 'assets/')
+      .pipe(refresh server)
 
 gulp.task 'html', ->
   gulp.src('*.html')
@@ -57,8 +61,9 @@ gulp.task 'html', ->
 
 gulp.task 'images', ->
     gulp.src('resources/images/**')
-        .pipe(imagemin())
-        .pipe(gulp.dest('assets/images/'))
+      .pipe(plumber())
+      .pipe(imagemin())
+      .pipe(gulp.dest('assets/images/'))
 
 gulp.task 'watch', ->
   gulp.watch 'scripts/coffee/**', ['scripts']
