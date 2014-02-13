@@ -16,9 +16,9 @@ INSTRUCTION_TEXT = "PUSH 'UP ARROW' TO FLAP"
 TEXT_FONT = "Impact, Charcoal, sans-serif"
 
 handleCollision = ->
-  if @_canFlap
+  if @_playerAlive
     @_deathSound.play()
-  @_canFlap = false
+  @_playerAlive = false
   
   @game._player.body.angularVelocity = 1500
  
@@ -35,7 +35,6 @@ handleCollision = ->
     @game._scoreText.destroy()
     @game.time.events.remove(@game._timer)
     @game._pipes.removeAll()
-    @game._safeZones.removeAll()
     @game.state.start "preflight", false
     
   
@@ -72,7 +71,7 @@ preflight.create = ->
   @game._ground = ground
   @_readyKey = readyKey
   @_shouldFlap = false
-  @_canFlap = false
+  @_playerAlive = false
   
 preflight.update = ->
   @game._player.body.rotation = 0
@@ -101,15 +100,16 @@ ingame.create = ->
   @_pointSound = game.add.audio "point"
   @_flapKey = flapKey
   @_shouldFlap = false
-  @_canFlap = true
+  @_playerAlive = true
 
 ingame.update = ->
   game = @game
   player = game._player
   ground = game._ground
   if player.y > KILL_HEIGHT then handleCollision.call @
-
-  updateGround ground, SCROLL_RATE
+  
+  if @_playerAlive
+    updateGround ground, SCROLL_RATE
 
   if player.body.velocity.y > 0
     if player.body.rotation < 80
@@ -129,7 +129,7 @@ ingame.update = ->
   
   @game.physics.overlap(player,safeZone,addPoint, null, @)
   
-  if @_canFlap
+  if @_playerAlive
     if @_shouldFlap
       @_flapSound.play()
       player.animations.play "flying"
@@ -144,7 +144,7 @@ ingame.createPipe = ->
   safeZoneLocation = Math.floor(Math.random() * (400 - 150 + 1)) + 150
   pipes = @game._pipes
   safeZones = @game._safeZones
-  if @_canFlap
+  if @_playerAlive
     #top and bottom of pipe Group
     pipeTop = @game.add.sprite(700, (safeZoneLocation - 100 - 525 ), "pipe_top")
     pipeBottom = @game.add.sprite(700, safeZoneLocation + 125, "pipe_bottom")
