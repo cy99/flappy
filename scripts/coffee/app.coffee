@@ -3,29 +3,41 @@ GRAVITY = 1200
 GROUND_HEIGHT = 32
 WIDTH = 800
 HEIGHT = 600
-KILL_HEIGHT = HEIGHT - GROUND_HEIGHT
+KILL_HEIGHT = HEIGHT - GROUND_HEIGHT - 10
 START_POSITION = 100
 SPACE_KEY_CODE = 32
 SCROLL_RATE = 30
 UP_KEY_CODE = 38
 READY_KEY = Phaser.Keyboard.SPACEBAR
 FLAP_KEY = Phaser.Keyboard.UP
-MENU_TEXT = "< SPACE > PUSH IT BRO, PUSH IT!"
+MENU_TEXT = "Flappy! \n < SPACE > PUSH IT BRO, PUSH IT!"
 PREFLIGHT_TEXT = "GET READY TO FLAP FO YO LIVES!"
 INSTRUCTION_TEXT = "PUSH 'UP ARROW' TO FLAP"
-
+TEXT_FONT = "Impact, Charcoal, sans-serif"
 
 handleCollision = ->
-  @_deathSound.play()
-  @game._safeZoneCounter = 0
-  @game._safeZoneIDs = []
-  @game._player.kill()
-  @game._score = 0
-  @game._scoreText.destroy()
-  @game.time.events.remove(@game._timer)
-  @game._pipes.removeAll()
-  @game._safeZones.removeAll()
-  @game.state.start "preflight", false
+  if @_canFlap
+    @_deathSound.play()
+  @_canFlap = false
+  
+  @game._player.body.angularVelocity = 1500
+ 
+  @game._pipes.forEach((obj)->
+    obj.body.velocity.x = 0
+  )
+  @game._safeZones.removeAll()  
+  
+  if @game._player.y > KILL_HEIGHT
+    @game._safeZoneCounter = 0
+    @game._safeZoneIDs = []
+    @game._player.kill()
+    @game._score = 0
+    @game._scoreText.destroy()
+    @game.time.events.remove(@game._timer)
+    @game._pipes.removeAll()
+    @game._safeZones.removeAll()
+    @game.state.start "preflight", false
+    
   
 toggleFlap = -> @_shouldFlap = true
 
@@ -53,14 +65,15 @@ preflight.create = ->
   @game._safeZoneCounter = 0
   @game._safeZoneIDs = []
   @game._score = 0
-  @_readyText = @game.add.text(100, 100, PREFLIGHT_TEXT, font: '32px arial', fill: '#000')
-  @_instructionText = @game.add.text(120, 200, INSTRUCTION_TEXT, font: '24px arial', fill: '#000')
-  @game._scoreText = @game.add.text(16, 16, "#{@game._score}", font: '32px arial', fill: '#000')
+  @_readyText = @game.add.text(100, 100, PREFLIGHT_TEXT, font: '32px comic sans ms', fill: '#000')
+  @_instructionText = @game.add.text(150, 190, INSTRUCTION_TEXT, font: '24px comic sans ms', fill: '#000')
+  @game._scoreText = @game.add.text(16, 16, "#{@game._score}", font: '32px impact', fill: '#000')
   @game._player = player
   @game._ground = ground
   @_readyKey = readyKey
   @_shouldFlap = false
-
+  @_canFlap = false
+  
 preflight.update = ->
   @game._player.body.rotation = 0
   ground = @game._ground
@@ -69,12 +82,12 @@ preflight.update = ->
     @_readyText.destroy()
     @_instructionText.destroy()
     @game.state.start "ingame", false
-
+    
 ingame = new Phaser.State
 
 ingame.create = ->
   @game._player.body.gravity.y = GRAVITY
-  @game._player.body.collideWorldBounds = true
+  @game._player.body.collideWorldBounds = true 
   @game._timer = @game.time.events.loop(3000, ingame.createPipe, @)
   
   @game._pipes = @game.add.group()
@@ -88,12 +101,12 @@ ingame.create = ->
   @_pointSound = game.add.audio "point"
   @_flapKey = flapKey
   @_shouldFlap = false
+  @_canFlap = true
 
 ingame.update = ->
   game = @game
   player = game._player
   ground = game._ground
-
   if player.y > KILL_HEIGHT then handleCollision.call @
 
   updateGround ground, SCROLL_RATE
@@ -116,39 +129,39 @@ ingame.update = ->
   
   @game.physics.overlap(player,safeZone,addPoint, null, @)
   
-  if @_shouldFlap
-    @_flapSound.play()
-    player.animations.play "flying"
-    player.body.velocity.y = FLAP_VELOCITY
-    @_shouldFlap = false
-  
+  if @_canFlap
+    if @_shouldFlap
+      @_flapSound.play()
+      player.animations.play "flying"
+      player.body.velocity.y = FLAP_VELOCITY
+      @_shouldFlap = false
   @game._scoreText.content = "#{@game._score}"
 
   
 ingame.createPipe = ->
   player = @game._player
-  #determine the safe zone of each pipe column
+  #determine the safe zone of each pipe column  (max - min + 1) + min
   safeZoneLocation = Math.floor(Math.random() * (400 - 150 + 1)) + 150
   pipes = @game._pipes
   safeZones = @game._safeZones
-  
-  #top and bottom of pipe Group
-  pipeTop = @game.add.sprite(700, (safeZoneLocation - 100 - 525 ), "pipe_top")
-  pipeBottom = @game.add.sprite(700, safeZoneLocation + 125, "pipe_bottom")
- 
-  safeZone = @game.add.sprite(700, safeZoneLocation, "safe_zone")
-  
-  newId = @game._safeZoneCounter + 1
-  @game._safeZoneCounter = newId
-  @game._safeZoneIDs.push(newId)
-  
-  safeZone.body.velocity.x = -200
-  pipeTop.body.velocity.x = -200
-  pipeBottom.body.velocity.x = -200
-  
-  pipes.add(pipeTop)
-  pipes.add(pipeBottom)
-  safeZones.add(safeZone)
+  if @_canFlap
+    #top and bottom of pipe Group
+    pipeTop = @game.add.sprite(700, (safeZoneLocation - 100 - 525 ), "pipe_top")
+    pipeBottom = @game.add.sprite(700, safeZoneLocation + 125, "pipe_bottom")
+   
+    safeZone = @game.add.sprite(700, safeZoneLocation, "safe_zone")
+    
+    # newId = @game._safeZoneCounter + 1
+    # @game._safeZoneCounter = newId
+    # @game._safeZoneIDs.push(newId)
+    
+    safeZone.body.velocity.x = -250
+    pipeTop.body.velocity.x = -250
+    pipeBottom.body.velocity.x = -250
+    
+    pipes.add(pipeTop)
+    pipes.add(pipeBottom)
+    safeZones.add(safeZone)
  
 addPoint = (player, zone)->
   @_pointSound.play()
@@ -161,7 +174,7 @@ inmenu.preload = ->
   @game.input.keyboard.addKeyCapture [SPACE_KEY_CODE, UP_KEY_CODE]
   @game.load.image('sky', '/assets/images/sky.png')
   @game.load.image('ground', '/assets/images/grass_32x32.png')
-  @game.load.spritesheet('naked_dude', '/assets/images/naked_dude.png', 48, 48)
+  @game.load.spritesheet('naked_dude', '/assets/images/big_dude.png', 72, 72)
   @game.load.audio('flap', '/resources/sounds/Flap.ogg')
   @game.load.audio("death", '/resources/sounds/Death.ogg')
   @game.load.audio("point", "/resources/sounds/Point.ogg")
@@ -178,7 +191,7 @@ inmenu.create = ->
 
   @_readyKey = readyKey
   @_ready = false
-  @_menuText = @game.add.text(100, 100, MENU_TEXT, font: '32px arial', fill: '#000')
+  @_menuText = @game.add.text(100, 100, MENU_TEXT, font: '32px impact', fill: '#000', align: 'center')
 
 inmenu.update = ->
   if @_ready
