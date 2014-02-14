@@ -7,16 +7,6 @@ ingame.create = ->
   @game._safeZones = @game.add.group()
   i = 0
   
-  # # playerGroup = @game.add.group()
-  # # player = new Player(@game, 100, @game._HEIGHT - 400)
-  # # playerGroup.add(player)
-  
-  # # while i < 3
-    # # newplayer = new Player(@game, 100, @game._HEIGHT - Math.random() * 200)
-    # # i++
-    # # playerGroup.add(newplayer)
-    
-  # @game._playerGroup = playerGroup
   
 ingame.update = ->
   ground = @game._ground
@@ -39,6 +29,10 @@ ingame.update = ->
   
   if !players
     ingame.cleanup()
+  
+  if players.countDead() == players.length 
+    ingame.cleanup()
+  
   
 ingame.createPipe = ->
   #determine the safe zone of each pipe column  (max - min + 1) + min
@@ -64,10 +58,8 @@ handleCollision = (player, pipe)->
   players = @game._playerGroup
   livingPlayers = players.countLiving()
   unless player._dying then player.collide(pipe.body.velocity.x)
-  
   console.log players.countDead()
-  if players.countDead() == players.length 
-    ingame.cleanup()
+  
   
 ingame.cleanup = () ->
   @game._playerGroup.destroy()

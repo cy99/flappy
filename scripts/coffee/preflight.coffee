@@ -24,10 +24,12 @@ addPlayer = (key) ->
   keyIsAvailable = !@_keyMap[keyCode]
   if game.state.current == "preflight" && keyIsAvailable
     @_keyMap[keyCode] = true
-    startX = 10
+    startX = 100
     startY = game.world.height - 400
     game._playerGroup.add new Player(game, startX, startY, keyCode)
-
+    
+    
+    
 resetKeyMap = (state) ->
   state._keyMap = {}
 
@@ -48,7 +50,15 @@ preflight.create = ->
   #TODO: temporary sheit for testing
   game.input.keyboard.addCallbacks @, addPlayer
 
-
+preflight.update = ->
+  players = @game._playerGroup
+  i = 0 
+  while i < players.length
+    if players.getAt(i).y > @game._KILL_HEIGHT && !players.getAt(i)._dying
+      players.getAt(i).hitGround()
+    i++
+     
+     
 startGame = ->
   state = @
   state._readyText.destroy()

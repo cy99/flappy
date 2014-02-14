@@ -29,11 +29,8 @@ Player.prototype.collide = (vel) ->
 Player.prototype.hitGround = () ->
   console.log 'hitground'
   @_deathSound.play()
-<<<<<<< HEAD
   @_dying = true
-=======
   @_flapKey.onDown.removeAll()
->>>>>>> 7fb23ad7d5577a39d2301c4d723a5a2b40abf67a
   @kill()
 
 module.exports = Player
