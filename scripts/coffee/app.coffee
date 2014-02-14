@@ -1,19 +1,28 @@
-FLAP_VELOCITY = -300
-GRAVITY = 1200
-GROUND_HEIGHT = 32
 WIDTH = 800
 HEIGHT = 600
-KILL_HEIGHT = HEIGHT - GROUND_HEIGHT - 10
-START_POSITION = 100
-SPACE_KEY_CODE = 32
-SCROLL_RATE = 30
-UP_KEY_CODE = 38
-READY_KEY = Phaser.Keyboard.SPACEBAR
-FLAP_KEY = Phaser.Keyboard.UP
-MENU_TEXT = "Flappy! \n < SPACE > PUSH IT BRO, PUSH IT!"
-PREFLIGHT_TEXT = "GET READY TO FLAP FO YO LIVES!"
-INSTRUCTION_TEXT = "PUSH 'UP ARROW' TO FLAP"
-TEXT_FONT = "Impact, Charcoal, sans-serif"
+
+game = new Phaser.Game WIDTH, HEIGHT
+
+game._FLAP_VELOCITY = -300
+game._GRAVITY = 1200
+game._GROUND_HEIGHT = 32
+game._WIDTH = WIDTH
+game._HEIGHT = HEIGHT
+game._KILL_HEIGHT = game._HEIGHT - game._GROUND_HEIGHT - 10
+game._START_POSITION = 100
+game._SPACE_KEY_CODE = 32
+game._SCROLL_RATE = 30
+game._UP_KEY_CODE = 38
+game._READY_KEY = Phaser.Keyboard.SPACEBAR
+game._FLAP_KEY = Phaser.Keyboard.UP
+game._MENU_TEXT = "Flappy! \n < SPACE > PUSH IT BRO, PUSH IT!"
+game._PREFLIGHT_TEXT = "GET READY TO FLAP FO YO LIVES!"
+game._INSTRUCTION_TEXT = "PUSH 'UP ARROW' TO FLAP"
+game._TEXT_FONT = "Impact, Charcoal, sans-serif"
+
+
+
+inmenu = require('./inmenu.coffee')
 
 handleCollision = ->
   if @_playerAlive
@@ -27,7 +36,7 @@ handleCollision = ->
   )
   @game._safeZones.removeAll()  
   
-  if @game._player.y > KILL_HEIGHT
+  if @game._player.y > @game._KILL_HEIGHT
     @game._safeZoneCounter = 0
     @game._safeZoneIDs = []
     @game._player.kill()
@@ -46,7 +55,7 @@ toggleReady = -> @_ready = true
 updateGround = (ground, rate) ->
   ground.tilePosition = x: ground.tilePosition.x + rate, y: ground.tilePosition.y
 
-game = new Phaser.Game WIDTH, HEIGHT
+
 
 preflight = new Phaser.State
 
@@ -62,13 +71,13 @@ preflight.create = ->
   @_timeStamp = 0
   ground = game.add.tileSprite(0, HEIGHT - 32, WIDTH, 32, "ground")
   
-  readyKey = @game.input.keyboard.addKey FLAP_KEY
+  readyKey = @game.input.keyboard.addKey @game._FLAP_KEY
    
   @game._safeZoneCounter = 0
   @game._safeZoneIDs = []
   @game._score = 0
-  @_readyText = @game.add.text(100, 100, PREFLIGHT_TEXT, font: '32px comic sans ms', fill: '#000')
-  @_instructionText = @game.add.text(150, 190, INSTRUCTION_TEXT, font: '24px comic sans ms', fill: '#000')
+  @_readyText = @game.add.text(100, 100, @game._PREFLIGHT_TEXT, font: '32px comic sans ms', fill: '#000')
+  @_instructionText = @game.add.text(150, 190, @game._INSTRUCTION_TEXT, font: '24px comic sans ms', fill: '#000')
   @game._scoreText = @game.add.text(16, 16, "#{@game._score}", font: '32px impact', fill: '#000')
   @game._timerText = @game.add.text(350, 200, "#{@_secondsTillGameStarts}", font: '150px comic sans ms', fill: 'red')         
   @game._player = player
@@ -108,7 +117,7 @@ preflight.update = ->
     
   @game._player.body.rotation = 0
   ground = @game._ground
-  updateGround ground, SCROLL_RATE  
+  updateGround ground, @game._SCROLL_RATE  
   @_readyKey.onDown.add countDownToStart, @
     
 
@@ -117,14 +126,14 @@ ingame = new Phaser.State
 
 ingame.create = ->
   @game._timerText.content = ""
-  @game._player.body.gravity.y = GRAVITY
+  @game._player.body.gravity.y = @game._GRAVITY
   @game._player.body.collideWorldBounds = true 
   @game._timer = @game.time.events.loop(3000, ingame.createPipe, @)
   
   @game._pipes = @game.add.group()
   @game._safeZones = @game.add.group()
   
-  flapKey = @game.input.keyboard.addKey FLAP_KEY
+  flapKey = @game.input.keyboard.addKey @game._FLAP_KEY
   flapKey.onDown.add toggleFlap, @
 
   @_flapSound = game.add.audio "flap"
@@ -138,10 +147,10 @@ ingame.update = ->
   game = @game
   player = game._player
   ground = game._ground
-  if player.y > KILL_HEIGHT then handleCollision.call @
+  if player.y > @game._KILL_HEIGHT then handleCollision.call @
   
   if @_playerAlive
-    updateGround ground, SCROLL_RATE
+    updateGround ground, @game._SCROLL_RATE
 
   if player.body.velocity.y > 0
     if player.body.rotation < 80
@@ -165,7 +174,7 @@ ingame.update = ->
     if @_shouldFlap
       @_flapSound.play()
       player.animations.play "flying"
-      player.body.velocity.y = FLAP_VELOCITY
+      player.body.velocity.y = @game._FLAP_VELOCITY
       @_shouldFlap = false
   @game._scoreText.content = "#{@game._score}"
 
@@ -200,36 +209,7 @@ addPoint = (player, zone)->
   @game._score += 1
   zone.destroy()
   
-inmenu = new Phaser.State
 
-inmenu.preload = -> 
-  @game.input.keyboard.addKeyCapture [SPACE_KEY_CODE, UP_KEY_CODE]
-  @game.load.image('sky', '/assets/images/sky.png')
-  @game.load.image('ground', '/assets/images/grass_32x32.png')
-  @game.load.spritesheet('naked_dude', '/assets/images/big_dude.png', 72, 72)
-  @game.load.audio('flap', '/resources/sounds/Flap.ogg')
-  @game.load.audio("death", '/resources/sounds/Death.ogg')
-  @game.load.audio("point", "/resources/sounds/Point.ogg")
-  @game.load.audio("bgm", "/resources/sounds/music.ogg")
-
-  @game.load.image('pipe_top', '/assets/images/pipe_top.png', 100, 600)
-  @game.load.image('pipe_bottom', '/assets/images/pipe_bottom.png', 100, 600)
-  @game.load.image('safe_zone', '/assets/images/safe_zone.png', 100, 100)
-
-inmenu.create = ->
-  @game.add.sprite(0, 0, 'sky')
-
-  readyKey = @game.input.keyboard.addKey READY_KEY
-  readyKey.onDown.add toggleReady, @
-
-  @_readyKey = readyKey
-  @_ready = false
-  @_menuText = @game.add.text(100, 100, MENU_TEXT, font: '32px impact', fill: '#000', align: 'center')
-
-inmenu.update = ->
-  if @_ready
-    @game.state.start "preflight", false
-    @_menuText.destroy()
 
 game.state.add "ingame", ingame, false
 game.state.add "preflight", preflight, false
