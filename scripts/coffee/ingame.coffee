@@ -59,7 +59,7 @@ ingame.createPipe = ->
     safeZones.add(safeZone)
  
 handleCollision = ->
-    @_deathSound.play()
+  @_deathSound.play()
   
   #@game._player.body.angularVelocity = 1500
  
@@ -71,7 +71,6 @@ handleCollision = ->
   if @game._player.y > @game._KILL_HEIGHT
     @game._safeZoneCounter = 0
     @game._safeZoneIDs = []
-    @game._player.kill()
     @game.time.events.remove(@game._timer)
     @game._pipes.removeAll()
     @game.state.start "preflight", false

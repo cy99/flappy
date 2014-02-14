@@ -1,4 +1,4 @@
-Player = require "./Player.coffee"
+Player = require "./player.coffee"
 
 preflight = new Phaser.State
 
@@ -35,8 +35,6 @@ preflight.create = ->
   addBgMusic @
   addCountdown @
 
-  #addPlayer game
-  
 startGame = ->
   console.log "startGame"
   state = @
