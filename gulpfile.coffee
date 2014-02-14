@@ -33,6 +33,7 @@ gulp.task 'livereload', ->
     server.listen 35729, (err) ->
         console.log err if err?
 
+ 
 gulp.task 'scripts', ->
   gulp.src('scripts/vendor/*.js')
     .pipe(plumber())
@@ -40,10 +41,10 @@ gulp.task 'scripts', ->
     .pipe(gulp.dest 'assets/')
     .pipe(refresh server)
 
-  gulp.src('scripts/coffee/app.coffee', { read: false })
+  gulp.src('scripts/coffee/*.coffee', { read: false })
     .pipe(plumber())
     .pipe(browserify(transform: ['coffeeify'], extensions: ['.coffee']))
-    .pipe(concat 'scripts.js')
+    .pipe(concat 'scripts.js')    
     .pipe(gulp.dest 'assets/')
     .pipe(refresh server)
 
