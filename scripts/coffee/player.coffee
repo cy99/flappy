@@ -8,7 +8,9 @@ Player = (game, x, y) ->
   @_flapKey = null
   @_flapSound = game.add.audio "flap"
   @_deathSound = game.add.audio "death"
-
+  @
+  
+  
 Player.prototype = Object.create Phaser.Sprite.prototype
 Player.prototype.constructor = Player
 Player.prototype.flap = () ->
@@ -21,9 +23,12 @@ Player.prototype.collide = (vel) ->
   @_dying = true
   @body.velocity.x = vel
   @body.angularVelocity = 1500
-
+  @kill()
+  
 Player.prototype.hitGround = () ->
+  console.log 'hitground'
   @_deathSound.play()
+  @_dying = true
   @kill()
 
 module.exports = Player
