@@ -50,7 +50,6 @@ ingame.createPipe = ->
   #top and bottom of pipe Group
   pipeTop = @game.add.sprite(750, (safeZoneLocation - 100 - 525 ), "pipe_top")
   pipeBottom = @game.add.sprite(750, safeZoneLocation + 125, "pipe_bottom")
- 
   safeZone = @game.add.sprite(750, safeZoneLocation, "safe_zone")
   
   safeZone.body.velocity.x = -600
