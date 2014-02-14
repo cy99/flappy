@@ -44,14 +44,15 @@ ingame.createPipe = ->
   pipes = @game._pipes
   safeZones = @game._safeZones
   if @_playerAlive
-    pipeTop = @game.add.sprite(700, (safeZoneLocation - 100 - 525 ), "pipe_top")
-    pipeBottom = @game.add.sprite(700, safeZoneLocation + 125, "pipe_bottom")
+    #top and bottom of pipe Group
+    pipeTop = @game.add.sprite(750, (safeZoneLocation - 100 - 525 ), "pipe_top")
+    pipeBottom = @game.add.sprite(750, safeZoneLocation + 125, "pipe_bottom")
    
-    safeZone = @game.add.sprite(700, safeZoneLocation, "safe_zone")
+    safeZone = @game.add.sprite(750, safeZoneLocation, "safe_zone")
     
-    safeZone.body.velocity.x = -250
-    pipeTop.body.velocity.x = -250
-    pipeBottom.body.velocity.x = -250
+    safeZone.body.velocity.x = -600
+    pipeTop.body.velocity.x = -600
+    pipeBottom.body.velocity.x = -600
     
     pipes.add(pipeTop)
     pipes.add(pipeBottom)
