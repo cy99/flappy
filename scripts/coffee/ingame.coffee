@@ -9,7 +9,7 @@ ingame.create = ->
   @game._timerText.content = ""
   @game._player.body.gravity.y = @game._GRAVITY
   @game._player.body.collideWorldBounds = true 
-  @game._timer = @game.time.events.loop(3000, ingame.createPipe, @)
+  @game._timer = @game.time.events.loop(2000, ingame.createPipe, @)
   
   @game._pipes = @game.add.group()
   @game._safeZones = @game.add.group()
@@ -68,24 +68,21 @@ ingame.createPipe = ->
   safeZones = @game._safeZones
   if @_playerAlive
     #top and bottom of pipe Group
-    pipeTop = @game.add.sprite(700, (safeZoneLocation - 100 - 525 ), "pipe_top")
-    pipeBottom = @game.add.sprite(700, safeZoneLocation + 125, "pipe_bottom")
+    pipeTop = @game.add.sprite(750, (safeZoneLocation - 100 - 525 ), "pipe_top")
+    pipeBottom = @game.add.sprite(750, safeZoneLocation + 125, "pipe_bottom")
    
-    safeZone = @game.add.sprite(700, safeZoneLocation, "safe_zone")
+    safeZone = @game.add.sprite(750, safeZoneLocation, "safe_zone")
     
-    # newId = @game._safeZoneCounter + 1
-    # @game._safeZoneCounter = newId
-    # @game._safeZoneIDs.push(newId)
-    
-    safeZone.body.velocity.x = -250
-    pipeTop.body.velocity.x = -250
-    pipeBottom.body.velocity.x = -250
+    safeZone.body.velocity.x = -600
+    pipeTop.body.velocity.x = -600
+    pipeBottom.body.velocity.x = -600
     
     pipes.add(pipeTop)
     pipes.add(pipeBottom)
     safeZones.add(safeZone)
  
 handleCollision = ->
+ 
   if @_playerAlive
     @_deathSound.play()
   @_playerAlive = false
