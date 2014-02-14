@@ -17,14 +17,15 @@ inmenu.preload = ->
   @game.load.image('safe_zone', '/assets/images/safe_zone.png', 100, 100)
 
 inmenu.create = ->
+  MENU_TEXT = "Flappy! \n < SPACE > PUSH IT BRO, PUSH IT!"
   @game.add.sprite(0, 0, 'sky')
 
-  readyKey = @game.input.keyboard.addKey @game._READY_KEY
+  readyKey = @game.input.keyboard.addKey Phaser.Keyboard.SPACEBAR
   readyKey.onDown.add toggleReady, @
 
   @_readyKey = readyKey
   @_ready = false
-  @_menuText = @game.add.text(100, 100, @game._MENU_TEXT, font: '32px impact', fill: '#000', align: 'center')
+  @_menuText = @game.add.text(100, 100, MENU_TEXT, font: '32px impact', fill: '#000', align: 'center')
 
 inmenu.update = ->
   if @_ready

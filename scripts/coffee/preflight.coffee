@@ -18,10 +18,18 @@ addCountdown = (state, events) ->
   state._startTime = Date.now()
   setTimeout(startGame.bind(state), 3000)
 
-addPlayer = (game) ->
-  startX = 100
-  startY = game.world.height - 400
-  game.player = game.add.existing new Player(game, startX, startY)
+addPlayer = (key) ->
+  game = @game
+  keyCode = key.keyCode || key.which
+  keyIsAvailable = !@_keyMap[keyCode]
+  if game.state.current == "preflight" && keyIsAvailable
+    @_keyMap[keyCode] = true
+    startX = 10
+    startY = game.world.height - 400
+    game._playerGroup.add new Player(game, startX, startY, keyCode)
+
+resetKeyMap = (state) ->
+  state._keyMap = {}
 
 preflight.create = ->
   game = @game
@@ -30,10 +38,16 @@ preflight.create = ->
     rate = @game._SCROLL_RATE
     @tilePosition = x: @tilePosition.x + rate, y: @tilePosition.y
   
+  game._playerGroup = game.add.group()
+  resetKeyMap @
   addCountdown @
   addText @
   addBgMusic @
   addCountdown @
+
+  #TODO: temporary sheit for testing
+  game.input.keyboard.addCallbacks @, addPlayer
+
 
 startGame = ->
   state = @
