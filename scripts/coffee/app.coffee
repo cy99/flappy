@@ -16,8 +16,6 @@ game._UP_KEY_CODE = 38
 game._READY_KEY = Phaser.Keyboard.SPACEBAR
 game._FLAP_KEY = Phaser.Keyboard.UP
 game._MENU_TEXT = "Flappy! \n < SPACE > PUSH IT BRO, PUSH IT!"
-game._PREFLIGHT_TEXT = "GET READY TO FLAP FO YO LIVES!"
-game._INSTRUCTION_TEXT = "PUSH 'UP ARROW' TO FLAP"
 game._TEXT_FONT = "Impact, Charcoal, sans-serif"
 
 preflight = require('./preflight.coffee')
