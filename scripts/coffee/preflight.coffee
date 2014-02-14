@@ -26,15 +26,10 @@ preflight.create = ->
   @_readyKey = readyKey
   @_shouldFlap = false
   @_playerAlive = false
-
   
-startGame = ->
-  
+startGame = ->  
   @_shouldFlap = true  
   @game.state.start "ingame", false
-  
-    
-
   
 countDownToStart = ->
   @_secondsTillGameStarts = 3
