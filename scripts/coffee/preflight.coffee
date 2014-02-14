@@ -36,7 +36,6 @@ preflight.create = ->
   addCountdown @
 
 startGame = ->
-  console.log "startGame"
   state = @
   state._readyText.destroy()
   state._timerText.destroy()

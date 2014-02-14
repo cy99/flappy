@@ -3,7 +3,6 @@ HEIGHT = 600
 
 game = new Phaser.Game WIDTH, HEIGHT
 
-game._FLAP_VELOCITY = -300
 game._GRAVITY = 1200
 game._GROUND_HEIGHT = 32
 game._WIDTH = WIDTH
